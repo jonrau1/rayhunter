@@ -38,3 +38,23 @@ null_cipher = true
 nas_null_cipher = true
 incomplete_sib = true
 test_analyzer = false
+
+# ATAK/TAK Server Integration
+# Send Cursor on Target (CoT) alerts to TAK servers when potential Stingray activity is detected
+# See https://github.com/EFForg/rayhunter/blob/main/doc/atak-integration.md for details
+[atak]
+enabled = false
+# TAK server address in host:port format (e.g., "192.168.1.100:8087")
+# tak_server_address = "192.168.1.100:8087"
+# Static device location (required for CoT messages)
+# latitude = 38.8977
+# longitude = -77.0365
+# Callsign prefix for alerts (default: "STINGRAY")
+callsign = "STINGRAY"
+# Unique device identifier (auto-generated if not set)
+# device_uid = "rayhunter-001"
+# Estimated Stingray operational range in meters (default: 1000m)
+# Typical range: 200m-2km depending on equipment and environment
+boundary_radius_meters = 1000
+# How long alerts persist on TAK clients in hours (default: 72)
+stale_hours = 72

@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use rayhunter::Device;
 use rayhunter::analysis::analyzer::AnalyzerConfig;
 
+use crate::atak::AtakConfig;
 use crate::error::RayhunterError;
 use crate::notifications::NotificationType;
 
@@ -20,6 +21,7 @@ pub struct Config {
     pub ntfy_url: Option<String>,
     pub enabled_notifications: Vec<NotificationType>,
     pub analyzers: AnalyzerConfig,
+    pub atak: AtakConfig,
 }
 
 impl Default for Config {
@@ -35,6 +37,7 @@ impl Default for Config {
             analyzers: AnalyzerConfig::default(),
             ntfy_url: None,
             enabled_notifications: vec![NotificationType::Warning, NotificationType::LowBattery],
+            atak: AtakConfig::default(),
         }
     }
 }

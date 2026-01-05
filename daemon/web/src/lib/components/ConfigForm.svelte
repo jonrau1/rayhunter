@@ -272,6 +272,141 @@
                     </div>
                 </div>
 
+                <div class="border-t pt-4 mt-6 space-y-3">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">ATAK/TAK Server Integration</h3>
+                    <p class="text-sm text-gray-600 mb-4">
+                        Send Cursor on Target (CoT) alerts to TAK servers when potential Stingray activity is detected.
+                        Alerts appear as boundary shapes showing the estimated operational range.
+                    </p>
+                    
+                    <div class="flex items-center">
+                        <input
+                            id="atak_enabled"
+                            type="checkbox"
+                            bind:checked={config.atak.enabled}
+                            class="h-4 w-4 text-rayhunter-blue focus:ring-rayhunter-blue border-gray-300 rounded"
+                        />
+                        <label for="atak_enabled" class="ml-2 block text-sm text-gray-700">
+                            Enable ATAK CoT Integration
+                        </label>
+                    </div>
+
+                    {#if config.atak.enabled}
+                        <div>
+                            <label for="tak_server_address" class="block text-sm font-medium text-gray-700 mb-1">
+                                TAK Server Address (e.g., 192.168.1.100:8087)
+                            </label>
+                            <input
+                                id="tak_server_address"
+                                type="text"
+                                bind:value={config.atak.tak_server_address}
+                                placeholder="192.168.1.100:8087"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-rayhunter-blue"
+                            />
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="atak_latitude" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Latitude
+                                </label>
+                                <input
+                                    id="atak_latitude"
+                                    type="number"
+                                    step="0.000001"
+                                    bind:value={config.atak.latitude}
+                                    placeholder="38.8977"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-rayhunter-blue"
+                                />
+                            </div>
+                            <div>
+                                <label for="atak_longitude" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Longitude
+                                </label>
+                                <input
+                                    id="atak_longitude"
+                                    type="number"
+                                    step="0.000001"
+                                    bind:value={config.atak.longitude}
+                                    placeholder="-77.0365"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-rayhunter-blue"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="atak_callsign" class="block text-sm font-medium text-gray-700 mb-1">
+                                Alert Callsign Prefix
+                            </label>
+                            <input
+                                id="atak_callsign"
+                                type="text"
+                                bind:value={config.atak.callsign}
+                                placeholder="STINGRAY"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-rayhunter-blue"
+                            />
+                        </div>
+
+                        <div>
+                            <label for="atak_device_uid" class="block text-sm font-medium text-gray-700 mb-1">
+                                Device UID (optional, auto-generated if empty)
+                            </label>
+                            <input
+                                id="atak_device_uid"
+                                type="text"
+                                bind:value={config.atak.device_uid}
+                                placeholder="rayhunter-001"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-rayhunter-blue"
+                            />
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="atak_radius" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Boundary Radius (meters)
+                                </label>
+                                <input
+                                    id="atak_radius"
+                                    type="number"
+                                    min="100"
+                                    max="5000"
+                                    bind:value={config.atak.boundary_radius_meters}
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-rayhunter-blue"
+                                />
+                                <p class="text-xs text-gray-500 mt-1">Typical Stingray range: 200m-2km</p>
+                            </div>
+                            <div>
+                                <label for="atak_stale_hours" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Alert Duration (hours)
+                                </label>
+                                <input
+                                    id="atak_stale_hours"
+                                    type="number"
+                                    min="1"
+                                    max="168"
+                                    bind:value={config.atak.stale_hours}
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-rayhunter-blue"
+                                />
+                                <p class="text-xs text-gray-500 mt-1">How long alerts persist on TAK</p>
+                            </div>
+                        </div>
+
+                        {#if config.atak.enabled && (!config.atak.tak_server_address || !config.atak.latitude || !config.atak.longitude)}
+                            <div class="bg-yellow-50 border border-yellow-200 rounded-md p-3">
+                                <p class="text-sm text-yellow-800">
+                                    ⚠️ ATAK is enabled but incomplete. Please provide:
+                                    {#if !config.atak.tak_server_address}
+                                        <span class="font-medium">TAK Server Address</span>
+                                    {/if}
+                                    {#if !config.atak.latitude || !config.atak.longitude}
+                                        <span class="font-medium">, Coordinates</span>
+                                    {/if}
+                                </p>
+                            </div>
+                        {/if}
+                    {/if}
+                </div>
+
                 <div class="flex gap-2 pt-4">
                     <button
                         type="submit"

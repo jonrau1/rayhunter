@@ -1,4 +1,5 @@
 mod analysis;
+mod atak;
 mod battery;
 mod config;
 mod diag;
@@ -14,6 +15,7 @@ mod stats;
 use std::net::SocketAddr;
 use std::sync::Arc;
 
+use crate::atak::{AtakService, run_atak_worker};
 use crate::battery::run_battery_notification_worker;
 use crate::config::{parse_args, parse_config};
 use crate::diag::run_diag_read_thread;
@@ -205,6 +207,13 @@ async fn run_with_config(
     let shutdown_token = restart_token.child_token();
 
     let notification_service = NotificationService::new(config.ntfy_url.clone());
+    let atak_service = AtakService::new(config.atak.clone());
+    let atak_handler = if atak_service.is_enabled() {
+        info!("ATAK CoT integration enabled");
+        Some(atak_service.new_handler())
+    } else {
+        None
+    };
 
     if !config.debug_mode {
         info!("Using configuration for device: {0:?}", config.device);
@@ -226,6 +235,7 @@ async fn run_with_config(
             analysis_tx.clone(),
             config.analyzers.clone(),
             notification_service.new_handler(),
+            atak_handler.clone(),
         );
         info!("Starting UI");
 
@@ -277,6 +287,8 @@ async fn run_with_config(
         notification_service,
         config.enabled_notifications.clone(),
     );
+
+    run_atak_worker(&task_tracker, atak_service);
 
     let state = Arc::new(ServerState {
         config_path: args.config_path.clone(),

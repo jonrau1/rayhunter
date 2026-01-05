@@ -23,6 +23,7 @@ use rayhunter::diag_device::DiagDevice;
 use rayhunter::qmdl::QmdlWriter;
 
 use crate::analysis::{AnalysisCtrlMessage, AnalysisWriter};
+use crate::atak::AtakAlert;
 use crate::display;
 use crate::notifications::{Notification, NotificationType};
 use crate::qmdl_store::{RecordingStore, RecordingStoreError};
@@ -46,6 +47,7 @@ pub struct DiagTask {
     analysis_sender: Sender<AnalysisCtrlMessage>,
     analyzer_config: AnalyzerConfig,
     notification_channel: tokio::sync::mpsc::Sender<Notification>,
+    atak_channel: Option<tokio::sync::mpsc::Sender<AtakAlert>>,
     state: DiagState,
     max_type_seen: EventType,
 }
@@ -64,12 +66,14 @@ impl DiagTask {
         analysis_sender: Sender<AnalysisCtrlMessage>,
         analyzer_config: AnalyzerConfig,
         notification_channel: tokio::sync::mpsc::Sender<Notification>,
+        atak_channel: Option<tokio::sync::mpsc::Sender<AtakAlert>>,
     ) -> Self {
         Self {
             ui_update_sender,
             analysis_sender,
             analyzer_config,
             notification_channel,
+            atak_channel,
             state: DiagState::Stopped,
             max_type_seen: EventType::Informational,
         }
@@ -205,14 +209,26 @@ impl DiagTask {
 
             if max_type > EventType::Informational {
                 info!("a heuristic triggered on this run!");
+                let alert_message = format!("Rayhunter has detected a {:?} severity event", max_type);
+                
                 self.notification_channel
                     .send(Notification::new(
                         NotificationType::Warning,
-                        format!("Rayhunter has detected a {:?} severity event", max_type),
+                        alert_message.clone(),
                         Some(Duration::from_secs(60 * 5)),
                     ))
                     .await
                     .expect("Failed to send to notification channel");
+
+                // Send ATAK CoT alert if configured
+                if let Some(atak_tx) = &self.atak_channel {
+                    if let Err(e) = atak_tx
+                        .send(AtakAlert::new(max_type, alert_message))
+                        .await
+                    {
+                        warn!("Failed to send ATAK alert: {}", e);
+                    }
+                }
             }
 
             if max_type > self.max_type_seen {
@@ -243,10 +259,11 @@ pub fn run_diag_read_thread(
     analysis_sender: Sender<AnalysisCtrlMessage>,
     analyzer_config: AnalyzerConfig,
     notification_channel: tokio::sync::mpsc::Sender<Notification>,
+    atak_channel: Option<tokio::sync::mpsc::Sender<AtakAlert>>,
 ) {
     task_tracker.spawn(async move {
         let mut diag_stream = pin!(dev.as_stream().into_stream());
-        let mut diag_task = DiagTask::new(ui_update_sender, analysis_sender, analyzer_config, notification_channel);
+        let mut diag_task = DiagTask::new(ui_update_sender, analysis_sender, analyzer_config, notification_channel, atak_channel);
         qmdl_file_tx
             .send(DiagDeviceCtrlMessage::StartRecording)
             .await

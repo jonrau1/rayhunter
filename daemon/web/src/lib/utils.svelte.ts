@@ -12,6 +12,17 @@ export interface AnalyzerConfig {
     test_analyzer: boolean;
 }
 
+export interface AtakConfig {
+    enabled: boolean;
+    tak_server_address: string | null;
+    device_uid: string | null;
+    callsign: string;
+    latitude: number | null;
+    longitude: number | null;
+    boundary_radius_meters: number;
+    stale_hours: number;
+}
+
 export enum enabled_notifications {
     Warning = 'Warning',
     LowBattery = 'LowBattery',
@@ -24,6 +35,7 @@ export interface Config {
     ntfy_url: string;
     enabled_notifications: enabled_notifications[];
     analyzers: AnalyzerConfig;
+    atak: AtakConfig;
 }
 
 export async function req(method: string, url: string): Promise<string> {
